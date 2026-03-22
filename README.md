@@ -117,6 +117,18 @@ For fully stable operation (no GUI backend usage), run headless:
 python3 person_detect_ncnn.py --model ~/yolo/yolo11n_ncnn_model --source csi --resolution 640x480 --imgsz 320 --conf 0.4 --headless
 ```
 
+If NCNN still crashes (for example `corrupted double-linked list`), use PyTorch model fallback on this OS stack:
+
+```bash
+# If needed, download model file once
+yolo detect predict model=yolo11n.pt
+
+# Run same script using .pt model instead of _ncnn_model
+python3 person_detect_ncnn.py --model ~/yolo/yolo11n.pt --source csi --resolution 640x480 --imgsz 320 --conf 0.4 --headless
+```
+
+The `.pt` fallback is usually slower but more stable than NCNN on some Trixie/Python 3.13 combinations.
+
 ## Troubleshooting: "Illegal instruction" when running YOLO
 
 If `yolo detect predict model=yolo11n.pt` exits with `Illegal instruction`, one of the installed Python binary wheels is incompatible with your Pi CPU/OS.

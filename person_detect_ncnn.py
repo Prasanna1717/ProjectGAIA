@@ -42,6 +42,7 @@ def main():
     parser.add_argument("--imgsz", type=int, default=320, help="Inference image size")
     parser.add_argument("--conf", type=float, default=0.4, help="Confidence threshold")
     parser.add_argument("--headless", action="store_true", help="Disable GUI window (safer on unstable VNC/Qt setups)")
+    parser.add_argument("--log-every", type=int, default=30, help="Headless: print status every N frames")
     args = parser.parse_args()
 
     width, height = parse_resolution(args.resolution)
@@ -75,6 +76,7 @@ def main():
     prev_time = time.time()
     display_enabled = not args.headless
     warned_display_failure = False
+    frame_count = 0
 
     try:
         while True:
@@ -99,15 +101,25 @@ def main():
                 verbose=False,
             )
 
-            annotated = results[0].plot()
+            boxes = results[0].boxes
+            person_count = int(len(boxes)) if boxes is not None else 0
 
             now = time.time()
             fps = 1.0 / max(now - prev_time, 1e-6)
             prev_time = now
 
+            frame_count += 1
+
+            if not display_enabled:
+                if args.log_every > 0 and frame_count % args.log_every == 0:
+                    print(f"frame={frame_count} fps={fps:.1f} persons={person_count}")
+                continue
+
+            annotated = results[0].plot()
+
             cv2.putText(
                 annotated,
-                f"FPS: {fps:.1f}",
+                f"FPS: {fps:.1f} persons: {person_count}",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.8,
