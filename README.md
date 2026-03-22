@@ -102,6 +102,37 @@ export QT_QPA_PLATFORMTHEME=
 python3 person_detect_ncnn.py --model ~/yolo/yolo11n_ncnn_model --source csi --resolution 640x480 --imgsz 320 --conf 0.4
 ```
 
+## 5b. Stable GUI view in VNC (browser stream, recommended)
+
+If OpenCV window rendering crashes on your Pi image, use the MJPEG web viewer instead of `cv2.imshow`.
+
+Install Flask once:
+
+```bash
+source ~/yolo/venv/bin/activate
+pip install flask
+```
+
+Run stream server:
+
+```bash
+cd "<path-to-CODEBASE AI>"
+source ~/yolo/venv/bin/activate
+python3 person_detect_web.py --model ~/yolo/yolo11n.pt --source csi --resolution 640x480 --imgsz 320 --conf 0.4 --host 0.0.0.0 --port 5000
+```
+
+Open in VNC browser:
+
+```text
+http://127.0.0.1:5000
+```
+
+Or from your laptop browser (same network):
+
+```text
+http://<pi-ip>:5000
+```
+
 ## Notes
 
 - If camera fails: try `--source usb1` or replug camera.
