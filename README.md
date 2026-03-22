@@ -94,13 +94,28 @@ sudo apt install -y python3-picamera2
 - Connect to `<pi-ip>`.
 - Keep script running via SSH, and the OpenCV window appears on the Pi desktop seen over VNC.
 
+If the app crashes with Qt/GTK errors or segfault in `cv2.waitKey`, run with stable Qt env vars:
+
+```bash
+export QT_STYLE_OVERRIDE=Fusion
+export QT_QPA_PLATFORMTHEME=
+python3 person_detect_ncnn.py --model ~/yolo/yolo11n_ncnn_model --source csi --resolution 640x480 --imgsz 320 --conf 0.4
+```
+
 ## Notes
 
 - If camera fails: try `--source usb1` or replug camera.
 - For CSI camera issues, run `rpicam-hello -t 5000` to confirm the sensor is detected.
 - On older images, the equivalent command is `libcamera-hello -t 5000`.
+- If you see `QStandardPaths: wrong permissions on runtime directory /run/user/1000`, fix once with `sudo chmod 700 /run/user/1000`.
 - For Pi 4, lower workload: `--resolution 416x320 --imgsz 256`.
 - If VNC shows black window, run with a connected display profile or use `vncserver-virtual` setup.
+
+For fully stable operation (no GUI backend usage), run headless:
+
+```bash
+python3 person_detect_ncnn.py --model ~/yolo/yolo11n_ncnn_model --source csi --resolution 640x480 --imgsz 320 --conf 0.4 --headless
+```
 
 ## Troubleshooting: "Illegal instruction" when running YOLO
 

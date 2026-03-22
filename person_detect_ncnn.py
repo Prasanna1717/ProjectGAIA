@@ -1,5 +1,10 @@
 import argparse
+import os
 import time
+
+# Avoid Qt GTK style plugin crashes seen on some Pi/VNC sessions.
+os.environ.setdefault("QT_STYLE_OVERRIDE", "Fusion")
+os.environ.setdefault("QT_QPA_PLATFORMTHEME", "")
 
 import cv2
 from ultralytics import YOLO
@@ -36,6 +41,7 @@ def main():
     parser.add_argument("--resolution", default="640x480", help="Display/capture resolution in WxH")
     parser.add_argument("--imgsz", type=int, default=320, help="Inference image size")
     parser.add_argument("--conf", type=float, default=0.4, help="Confidence threshold")
+    parser.add_argument("--headless", action="store_true", help="Disable GUI window (safer on unstable VNC/Qt setups)")
     args = parser.parse_args()
 
     width, height = parse_resolution(args.resolution)
@@ -67,6 +73,8 @@ def main():
             raise RuntimeError(f"Unable to open source: {args.source}")
 
     prev_time = time.time()
+    display_enabled = not args.headless
+    warned_display_failure = False
 
     try:
         while True:
@@ -108,11 +116,18 @@ def main():
                 cv2.LINE_AA,
             )
 
-            cv2.imshow("YOLO Human Detection (NCNN)", annotated)
-
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
-                break
+            if display_enabled:
+                try:
+                    cv2.imshow("YOLO Human Detection (NCNN)", annotated)
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord("q"):
+                        break
+                except Exception as ex:
+                    display_enabled = False
+                    if not warned_display_failure:
+                        print(f"Display disabled after GUI error: {ex}")
+                        print("Continuing in headless mode. Re-run with --headless to avoid GUI calls.")
+                        warned_display_failure = True
     finally:
         if cap is not None:
             cap.release()
